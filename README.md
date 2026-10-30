@@ -1,3 +1,5 @@
+![Banner](banner.png)
+
 # codeintel-Log-Injection-Analyzer
 Scans code for potential log injection vulnerabilities by identifying unsanitized user input that is directly written to log files, allowing attackers to inject malicious log entries. - Focused on Tools for static code analysis, vulnerability scanning, and code quality assurance
 
