@@ -29,18 +29,19 @@ def is_potentially_vulnerable(line):
     Returns:
         bool: True if the line is potentially vulnerable, False otherwise.
     """
-    # Regex to detect common log injection patterns (e.g., using format strings with user input)
+    # One pattern per message-building style, with the receiver and
+    # level factored out. The old list spelled out ten copies of the
+    # percent style only, so the .format and f-string calls in this
+    # tool's own bundled example were never flagged, even though that
+    # example marked them vulnerable.
+    # The [^)]* spans stop at the first closing paren, so a call whose
+    # argument itself contains parentheses can be undermatched. That
+    # is accepted here: this is a line heuristic, not a parser.
+    call = r"(?:logging|logger)\.(?:info|error|warning|debug|critical)\("
     patterns = [
-        r"logging\.info\(.*?\%\s*[sdrf].*?\)",
-        r"logging\.error\(.*?\%\s*[sdrf].*?\)",
-        r"logging\.warning\(.*?\%\s*[sdrf].*?\)",
-        r"logging\.debug\(.*?\%\s*[sdrf].*?\)",
-        r"logging\.critical\(.*?\%\s*[sdrf].*?\)",
-        r"logger\.info\(.*?\%\s*[sdrf].*?\)",
-        r"logger\.error\(.*?\%\s*[sdrf].*?\)",
-        r"logger\.warning\(.*?\%\s*[sdrf].*?\)",
-        r"logger\.debug\(.*?\%\s*[sdrf].*?\)",
-        r"logger\.critical\(.*?\%\s*[sdrf].*?\)"
+        call + r"[^)]*\%\s*[sdrf]",
+        call + r"[^)]*\.format\s*\(",
+        call + r"\s*f['\"]",
     ]
 
     for pattern in patterns:
@@ -121,12 +122,19 @@ def main():
 
     if os.path.isfile(filepath):
         logging.info(f"Scanning file: {filepath}")
-        scan_file(filepath, output_file)
+        vulnerabilities = scan_file(filepath, output_file)
     elif os.path.isdir(filepath):
         logging.info(f"Scanning directory: {filepath}")
-        scan_directory(filepath, output_file)
+        vulnerabilities = scan_directory(filepath, output_file)
     else:
         logging.error(f"Invalid file path: {filepath}")
+        sys.exit(1)
+
+    # Findings exit 1, as the other scanners in this set do. Before
+    # this the count was computed and then dropped, so a run that
+    # found injection patterns and a clean run were indistinguishable
+    # to a script checking the exit code.
+    if vulnerabilities:
         sys.exit(1)
 
 if __name__ == "__main__":
@@ -137,21 +145,3 @@ if __name__ == "__main__":
     # python main.py example.py -o output.txt
     main()
 
-# Example file (example.py) for testing:
-"""
-import logging
-
-username = input("Enter username: ")
-logging.info("User logged in: %s", username) # Vulnerable
-
-password = input("Enter password: ")
-logging.error("Invalid password attempt: {}".format(password)) # Vulnerable
-
-filename = input("Enter filename: ")
-logging.warning(f"File accessed: {filename}") # Potentially vulnerable depending on python version
-
-logging.debug("This is a debug message")
-logging.info("Safe message")
-"""
-
-# Example directory (example_directory/) with example.py inside

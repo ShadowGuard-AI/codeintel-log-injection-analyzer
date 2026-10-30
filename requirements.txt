@@ -1,4 +1,3 @@
-bandit>=1.0.0
-flake8>=1.0.0
-pylint>=1.0.0
-pyre-check>=1.0.0
+# Nothing to install: main.py imports only argparse, logging, os,
+# re and sys from the standard library. The scanner entries that
+# stood here before named tools this program never runs.
