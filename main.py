@@ -1,4 +1,5 @@
 import argparse
+import ast
 import logging
 import os
 import re
@@ -6,6 +7,50 @@ import sys
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Files that could not be read or decoded during this run. A failed
+# file is not a clean file, so main reports each one as not scanned
+# and exits 1 when this list is not empty.
+scan_failures = []
+
+LOG_LEVELS = ("info", "error", "warning", "debug", "critical")
+
+def _contains_name(node):
+    return any(isinstance(child, ast.Name) for child in ast.walk(node))
+
+def _is_log_call(node):
+    if not isinstance(node, ast.Call):
+        return False
+    func = node.func
+    if not isinstance(func, ast.Attribute) or func.attr not in LOG_LEVELS:
+        return False
+    receiver = func.value
+    return isinstance(receiver, ast.Name) and receiver.id in ("logging", "logger")
+
+def _message_is_risky(arg):
+    # A bare name written straight to the log.
+    if isinstance(arg, ast.Name):
+        return True
+    # An f-string holding a name.
+    if isinstance(arg, ast.JoinedStr):
+        return _contains_name(arg)
+    # A percent build holding a name, or a string built by adding a name.
+    if isinstance(arg, ast.BinOp) and isinstance(arg.op, (ast.Mod, ast.Add)):
+        return _contains_name(arg)
+    # A .format call holding a name in its arguments.
+    if isinstance(arg, ast.Call) and isinstance(arg.func, ast.Attribute) and arg.func.attr == "format":
+        return any(_contains_name(item) for item in list(arg.args) + [kw.value for kw in arg.keywords])
+    return False
+
+def _call_is_risky(node):
+    if not node.args:
+        return False
+    # The lazy form passes the format string and the value as separate
+    # arguments, logging.info("... %s", user), and the logging module
+    # treats that as the safe way to pass values, so it is not flagged.
+    if len(node.args) >= 2 and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
+        return False
+    return _message_is_risky(node.args[0])
 
 def setup_argparse():
     """
@@ -63,22 +108,29 @@ def scan_file(filepath, output_file=None):
     vulnerabilities = []
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
-            for i, line in enumerate(f, 1):
-                if is_potentially_vulnerable(line):
-                    vulnerabilities.append((i, line.strip()))
-                    log_message = f"Potential log injection vulnerability found in {filepath} at line {i}: {line.strip()}"
-                    logging.warning(log_message)
-                    if output_file:
-                        with open(output_file, "a") as outfile:
-                            outfile.write(log_message + "\n")
-                    else:
-                        print(log_message)
+            source = f.read()
+        lines = source.splitlines()
+        tree = ast.parse(source)
+        for node in ast.walk(tree):
+            if _is_log_call(node) and _call_is_risky(node):
+                i = node.lineno
+                line = lines[i - 1].strip() if 0 < i <= len(lines) else ""
+                vulnerabilities.append((i, line))
+                log_message = f"Potential log injection vulnerability found in {filepath} at line {i}: {line}"
+                logging.warning(log_message)
+                if output_file:
+                    with open(output_file, "a") as outfile:
+                        outfile.write(log_message + "\n")
+                else:
+                    print(log_message)
 
     except FileNotFoundError:
         logging.error(f"File not found: {filepath}")
+        scan_failures.append(filepath)
         return []
     except Exception as e:
         logging.error(f"Error processing file {filepath}: {e}")
+        scan_failures.append(filepath)
         return []
     return vulnerabilities
 
@@ -130,11 +182,18 @@ def main():
         logging.error(f"Invalid file path: {filepath}")
         sys.exit(1)
 
+    for failed in scan_failures:
+        print(f"Not scanned: {failed}")
+        if output_file:
+            with open(output_file, "a") as outfile:
+                outfile.write(f"Not scanned: {failed}\n")
+
     # Findings exit 1, as the other scanners in this set do. Before
     # this the count was computed and then dropped, so a run that
     # found injection patterns and a clean run were indistinguishable
-    # to a script checking the exit code.
-    if vulnerabilities:
+    # to a script checking the exit code. A file that failed to scan
+    # also exits 1 instead of passing as clean.
+    if vulnerabilities or scan_failures:
         sys.exit(1)
 
 if __name__ == "__main__":
