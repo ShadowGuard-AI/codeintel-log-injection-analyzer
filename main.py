@@ -25,6 +25,9 @@ def _is_log_call(node):
     if not isinstance(func, ast.Attribute) or func.attr not in LOG_LEVELS:
         return False
     receiver = func.value
+    # I accept only two receiver spellings. A logger named log, or
+    # one reached through self.logger, is invisible to this check
+    # even when the call shape is exactly the risky one.
     return isinstance(receiver, ast.Name) and receiver.id in ("logging", "logger")
 
 def _message_is_risky(arg):
@@ -63,6 +66,10 @@ def setup_argparse():
     parser.add_argument("-o", "--output", help="Path to the output file for results.", required=False)
     return parser.parse_args()
 
+# Nothing in the scan path calls this line based version any
+# more. The AST helpers above it do the real work; this stays
+# as the simple readable form of the same idea, and the two
+# can disagree on a call split across lines.
 def is_potentially_vulnerable(line):
     """
     Checks if a line of code is potentially vulnerable to log injection.
@@ -119,6 +126,9 @@ def scan_file(filepath, output_file=None):
                 log_message = f"Potential log injection vulnerability found in {filepath} at line {i}: {line}"
                 logging.warning(log_message)
                 if output_file:
+                    # I open the output file in append mode for every finding,
+                    # and I never clear it first. Rerunning a scan against the
+                    # same output path adds the new findings under the old ones.
                     with open(output_file, "a") as outfile:
                         outfile.write(log_message + "\n")
                 else:
