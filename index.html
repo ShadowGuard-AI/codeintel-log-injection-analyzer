@@ -3,164 +3,59 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Codeintel Log Injection Analyzer: what it is, how it runs, where it stops</title>
-<meta name="description" content="Codeintel Log Injection Analyzer is one of my projects. The README in the repo is short, so this page sticks to what the files themselves show.">
-<style>
-:root {
-  --bg: #1a0c0c; --panel: #2a1412; --ink: #f0e6d6;
-  --mut: #381b18;
-  --acc: #c9a24b; --acc2: #94b2c4;
-  --line: #2a1412;
-}
-* { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink);
-  font-family: Charter, Georgia, serif; line-height: 1.55; }
-code, pre, .mono { font-family: 'DejaVu Sans Mono', monospace; }
-a { color: var(--acc2); }
-.hero { padding: 3rem 6vw 1rem; }
-.hero img.banner { width: 100%; height: auto; border: 1px solid var(--line);
-  border-radius: 10px; }
-.logo { width: 92px; height: 92px; border-radius: 18px;
-  border: 1px solid var(--line); }
-h1 { font-size: 2.4rem; margin: 0.4em 0 0.1em; }
-h2 { border-bottom: 2px solid var(--acc); padding-bottom: 0.2em;
-  margin-top: 2em; }
-.lede { font-size: 1.15rem; max-width: 62ch; }
-main { padding: 0 6vw 3rem; max-width: 1180px; margin: 0 auto; }
-.grid { display: grid; gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
-.card { background: var(--panel); border: 1px solid var(--line);
-  border-radius: 12px; padding: 1rem 1.2rem; }
-.card.pop { animation: rise 0.7s ease both; }
-@keyframes rise { from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: none; } }
-pre.code { background: #101014; color: #e8e6df; padding: 1rem 1.2rem;
-  border-radius: 12px; overflow-x: auto; font-size: 0.86rem;
-  border-left: 5px solid var(--acc); }
-table { border-collapse: collapse; width: 100%; }
-td, th { border-bottom: 1px solid var(--line); padding: 0.45rem 0.6rem;
-  text-align: left; }
-.shots { display: grid; gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-.shots img { width: 100%; height: auto; border: 1px solid var(--line);
-  border-radius: 10px; background: #f4f1e8; }
-footer { padding: 2rem 6vw; border-top: 1px solid var(--line);
-  color: var(--mut); }
-.rail { display: flex; gap: 1.2rem; align-items: flex-start; }
-.rail nav { position: sticky; top: 1rem; min-width: 180px; }
-@media (max-width: 760px) { .rail { flex-direction: column; }
-  .rail nav { position: static; } }
-@media (prefers-reduced-motion: reduce) {
-  .card.pop { animation: none; } * { scroll-behavior: auto; } }
-</style>
+<title>codeintel-log-injection-analyzer: The Aquarium's Quarantine Row</title>
+<style>@font-face{font-family:'BenchNine';src:url('fonts/BenchNine.ttf') format('truetype');}@font-face{font-family:'Bitter';src:url('fonts/Bitter.ttf') format('truetype');}:root{--ground:#f1ead8;--panel:#e4d7ba;--head:#1e4d3b;--ink:#1d2420;--brass:#a88a3d}*{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--ink);font-family:'Bitter',serif;line-height:1.65}h1,h2,h3{font-family:'BenchNine',sans-serif;color:var(--head);letter-spacing:.04em}.hero img.heroimg{width:100%;height:48vh;object-fit:cover;display:block}.hero .in,main,footer{max-width:1120px;margin:0 auto;padding:1rem 6vw 2rem}.logo{width:200px}.btn{display:inline-block;text-decoration:none;font-family:'BenchNine',sans-serif;color:var(--head);background:#e9e4d2;border:2px solid var(--brass);border-radius:6px;padding:.7rem 1.2rem;margin:.2rem}.btn:hover{border-bottom:4px solid var(--brass)}.btn:active{transform:translateY(1px)}.btn:focus-visible{outline:3px solid var(--brass);outline-offset:3px}.plate{background:var(--panel);padding:.4rem 1.5rem 1.3rem;margin:1.8rem 0;border:1px solid var(--brass)}pre{background:#20302a;color:#f4f2ea;padding:1rem;overflow-x:auto;white-space:pre-wrap}.callout{border-left:6px solid var(--brass);padding:.2rem 1.2rem 1rem;margin:1.2rem 0;background:#f5efdd}.flag{border:2px solid var(--head);padding:.2rem 1.2rem 1rem;margin:1.2rem 0}.entry{display:flex;gap:1rem;padding:.5rem 0;border-bottom:1px solid var(--brass)}.entry b{min-width:230px}a{color:var(--head)}</style>
 </head>
-<body class="layout-note">
-<!-- This page exists for codeintel-log-injection-analyzer alone: the layout (notebook),
-     the colors, and the type were picked for this project, not
-     shared with the other project pages. The code block below is
-     copied from the file it names, line for line. If it looks
-     plain, that is because the project is plain, and I would
-     rather the page match the project than dress it up. The one
-     thing I will not do here is oversell: what this project does
-     not do is stated on the page, not hidden from it. -->
+<body>
 <header class="hero">
-  <img class="logo" src="assets/logo.png" alt="Codeintel Log Injection Analyzer logo">
-  <img class="banner" src="assets/banner.png" alt="">
-  <h1>Codeintel Log Injection Analyzer</h1>
-  <p class="mono"><a href="https://github.com/ShadowGuard-AI/codeintel-log-injection-analyzer">github.com/ShadowGuard-AI/codeintel-log-injection-analyzer</a></p>
+<img class="heroimg" src="assets/intro-banner.png" alt="Introduction view for codeintel-log-injection-analyzer, scenery first, no lettering">
+<div class="in">
+<img class="logo" src="assets/logo.png" alt="Themed mark for codeintel-log-injection-analyzer">
+<h1>codeintel-log-injection-analyzer</h1>
+<p>Set out as a quarantine record. Brass is used for rules and for numbers. It is not used for decoration.</p>
+</div>
 </header>
-
 <main>
-  <section class="rail">
-    <nav aria-label="on this page">
-      <p class="mono"><a href="#run">Run it</a><br>
-      <a href="#files">The files</a><br>
-      <a href="#sheets">The sheets</a><br>
-      <a href="https://github.com/ShadowGuard-AI/codeintel-log-injection-analyzer">The repo</a></p>
-    </nav>
-    <div>
-      <p class="lede">Codeintel Log Injection Analyzer is one of my projects. The README in the repo is short, so this page sticks to what the files themselves show.</p>
-      <div class="grid">
-        <div class="card pop"><h3>What it is</h3>
-          <p>Codeintel Log Injection Analyzer: 5 files, 168 counted
-          lines across Python 147, Markdown 18, Text 3. One job, done in the
-          open, in files you can read.</p></div>
-        <div class="card pop"><h3>The biggest piece</h3>
-          <p><code>main.py</code> carries the most
-          lines. If the project grows, that file is where the growth
-          lands first, for better or worse.</p></div>
-        <div class="card pop"><h3>The honest gap</h3>
-          <p>No test files yet. That is the honest gap, and the roadmap in the visuals folder says what the first one should cover.</p></div>
-      </div>
-      <section id="run">
-        <h2>Run it</h2>
-        <p>The repo README has the exact commands for this one. The
-        shape is the shape for most of my projects: clone it, read the
-        top file first so you know what will happen, then run it on
-        something you do not mind breaking.</p>
-        <p class="mono">$ git clone https://github.com/ShadowGuard-AI/codeintel-log-injection-analyzer.git<br>$ cd codeintel-log-injection-analyzer</p>
-      </section>
-      
-  <section aria-label="real code">
-    <h2>The code, as it sits in the repo</h2>
-    <p>From <code>main.py</code>, line 8 on. I did
-    not tidy it for the page. What you see is what the file has.</p>
-    <pre class="code"><code>logging.basicConfig(level=logging.INFO, format=&#x27;%(asctime)s - %(levelname)s - %(message)s&#x27;)
-
-def setup_argparse():
-    &quot;&quot;&quot;
-    Sets up the argument parser for the command-line interface.
-    &quot;&quot;&quot;
-    parser = argparse.ArgumentParser(description=&quot;Scans code for potential log injection vulnerabilities.&quot;)
-    parser.add_argument(&quot;filepath&quot;, help=&quot;Path to the file or directory to scan.&quot;)
-    parser.add_argument(&quot;-l&quot;, &quot;--log-level&quot;, choices=[&#x27;DEBUG&#x27;, &#x27;INFO&#x27;, &#x27;WARNING&#x27;, &#x27;ERROR&#x27;, &#x27;CRITICAL&#x27;], default=&#x27;INFO&#x27;,
-                        help=&quot;Set the logging level (default: INFO).&quot;)
-    parser.add_argument(&quot;-o&quot;, &quot;--output&quot;, help=&quot;Path to the output file for results.&quot;, required=False)
-    return parser.parse_args()
-
-def is_potentially_vulnerable(line):
-    &quot;&quot;&quot;
-    Checks if a line of code is potentially vulnerable to log injection.
-    This is a simplified example and can be expanded with more sophisticated checks.
-
-    Args:
-        line (str): The line of code to check.
-
-    Returns:</code></pre>
-  </section>
-      <section id="files">
-        <h2>The files that matter</h2>
-        <table><tr><th>File</th><th>Lines</th></tr>
-        <tr><td><code>main.py</code></td><td>147</td></tr>
-        <tr><td><code>README.md</code></td><td>18</td></tr>
-        <tr><td><code>requirements.txt</code></td><td>3</td></tr>
-        <tr><td><code>banner.png</code></td><td>0</td></tr>
-        <tr><td><code>logo.png</code></td><td>0</td></tr>
-        </table>
-        <p>Names doing the work: <span class="mono">setup_argparse, is_potentially_vulnerable, scan_file, scan_directory, main</span>.</p>
-      </section>
-      <section id="sheets">
-        <h2>Drawn by hand</h2>
-        <p>I sketch my projects on notebook paper so I have to
-        understand them well enough to draw them. The full set,
-        with the counts and how they were counted, is the
-        <a href="https://github.com/ShadowGuard-AI/codeintel-log-injection-analyzer/tree/main/codeintel-log-injection-analyzer-Visuals">codeintel-log-injection-analyzer-Visuals</a>
-        folder in the repo. Nothing is drawn over the binder holes.
-        That is a rule, not a style.</p>
-        <div class="shots">
-          <img src="assets/architecture.png" alt="Hand drawn architecture sheet for Codeintel Log Injection Analyzer">
-          <img src="assets/flowchart.png" alt="Hand drawn flowchart sheet for Codeintel Log Injection Analyzer">
-          <img src="assets/product-map.png" alt="Hand drawn product map sheet for Codeintel Log Injection Analyzer">
-        </div>
-      </section>
-    </div>
-  </section>
+<nav><a class="btn" href="#s3">Scan This Path</a><a class="btn" href="#s4">Set the Log Level</a><a class="btn" href="#s4">Write Results to a File</a><a class="btn" href="#s4">Show Help</a></nav>
+<section class="plate" id="s0"><h2>Held Apart for Watching</h2><p>It reads Python code. It looks for calls that write a value into a log. It reports the calls where the logged message is built directly from a named value, with no cleaning step in between. Unsanitised input written straight to a log lets an attacker place false entries in that log. The tool looks for the code shape that allows this. It does not run the code. It does not watch a live log. It reads a file and reports line numbers.</p></section>
+<section class="plate" id="s1"><h2>Calls This Scan Can See</h2><p>The file is parsed into a syntax tree. The scan walks that tree. It is not a line by line text search. A call counts as a log call only when two facts hold. The receiver is the name logging or the name logger. The method is one of info, error, warning, debug, or critical.</p><div class="callout"><h3>A Logger Under Another Name Is Not Seen</h3><p>Only two receiver names are seen. A logger held under a different name is not seen. A logger reached through self.logger is not seen. A log call of exactly the risky shape is missed in both cases. A clean result means no risky call was found among the calls this scan can see. It does not mean the file has no log calls.</p></div></section>
+<section class="plate" id="s2"><h2>Shapes That Are Reported, and the Lazy Form Is Left Alone</h2><p>The first argument is then tested. A bare name is reported. An f-string that holds a name is reported. A value built by percent formatting or by addition, where the build holds a name, is reported. A format call that holds a name in its arguments is reported. One form is not reported: a call that passes a constant format string first and the value as a later argument is the lazy form, and the code leaves it alone.</p></section>
+<section class="plate" id="s3"><h2>Installation, exactly as printed, flagged in place</h2><pre>git clone https://github.com/ShadowGuardAI/codeintel-log-injection-analyzer</pre><div class="flag"><h3>Name written without its hyphen</h3><p>The organisation name in that address is written without its hyphen. The repository lives under ShadowGuard-AI. The corrected address is https://github.com/ShadowGuard-AI/codeintel-log-injection-analyzer. The README gives no step after the clone. This page adds none.</p></div></section>
+<section class="plate" id="s4"><h2>True invocation and arguments in parser order</h2><pre>python3 main.py FILEPATH [-l LEVEL] [-o OUTPUT]</pre><p>The README prints an executable name followed by the word params in brackets. That line omits the required file path. It cannot be run as shown.</p><div class="entry"><b>filepath</b><span>Path to the file or directory to scan. Required and positional.</span></div><div class="entry"><b>-l, --log-level</b><span>Sets the logging level. Permitted values are DEBUG, INFO, WARNING, ERROR, and CRITICAL. Default INFO.</span></div><div class="entry"><b>-o, --output</b><span>Path to an output file for the results. Not required.</span></div><div class="entry"><b>-h</b><span>Shows the help message and exits.</span></div><p>The README list gives only the short forms. It gives -l no description. It omits the positional path in full. Those facts are stated beside the list.</p></section>
+<section class="plate" id="s5"><h2>Scope and limits, and Findings by File and Line</h2><p>A directory scan reads only files that end in .py. A single file given directly is attempted whatever its ending is. A file that is not Python will fail to parse and is then counted as not scanned. Each finding is reported as one line giving the file, the line number, and the text of the line, and the same line is written as a warning in the log output.</p><div class="callout"><h3>Results Are Appended, Never Cleared</h3><p>If an output file is named, findings are appended to it. The file is opened in append mode for each finding. It is never cleared first. A second run at the same path adds its findings below the first run findings. A file that cannot be read, decoded, or parsed is listed as not scanned, and its name is also appended to the output file where one is named.</p></div></section>
+<section class="plate" id="s6"><h2>Not Scanned Is Not Clean, exits</h2><p>A run with findings exits 1. A run with a failed file exits 1. A run with neither finishes without an exit call and ends at 0. A path that does not exist is refused and exits 1.</p></section>
+<section class="plate" id="s7"><h2>Licence entry</h2><pre>Copyright (c) ShadowGuardAI</pre><p>Printed as it stands and flagged. It is the unhyphenated form, and it is the second use of that form in the file. No licence is named in the README. No terms are given. The absence is recorded and nothing is added.</p></section>
+<section class="plate"><h2>Preserved record, verbatim lines and code facts</h2>
+<p># codeintel-Log-Injection-Analyzer</p>
+<p>Scans code for potential log injection vulnerabilities by identifying unsanitized user input that is directly written to log files, allowing attackers to inject malicious log entries. - Focused on Tools for static code analysis, vulnerability scanning, and code quality assurance</p>
+<p>## Install</p>
+<p>`git clone https://github.com/ShadowGuardAI/codeintel-log-injection-analyzer`</p>
+<p>## Usage</p>
+<p>`./codeintel-log-injection-analyzer [params]`</p>
+<p>## Parameters</p>
+<p>- `-h`: Show help message and exit</p>
+<p>- `-l`: No description provided</p>
+<p>- `-o`: Path to the output file for results.</p>
+<p>## License</p>
+<p>Copyright (c) ShadowGuardAI</p>
+<p>python3 main.py FILEPATH [-l LEVEL] [-o OUTPUT]</p>
+<p>https://github.com/ShadowGuard-AI/codeintel-log-injection-analyzer</p>
+<p>A Logger Under Another Name Is Not Seen</p>
+<p>Results Are Appended, Never Cleared</p>
+<p>Scan This Path</p>
+<p>Set the Log Level</p>
+<p>Write Results to a File</p>
+<p>Show Help</p>
+<p>Held Apart for Watching</p>
+<p>Calls This Scan Can See</p>
+<p>Shapes That Are Reported</p>
+<p>The Lazy Form Is Left Alone</p>
+<p>Not Scanned Is Not Clean</p>
+<p>Findings by File and Line</p>
+<p>logging or the name logger</p>
+<p>info, error, warning, debug, or critical</p>
+</section>
 </main>
-<footer>
-  <p>Codeintel Log Injection Analyzer is one of my projects. This page was written
-  from the repo itself on 2026-10-30: the counts are the
-  repo's counts, the code is the repo's code, and the gaps are the
-  repo's gaps.</p>
-</footer>
+<footer><p>Theme record for ShadowGuard-AI/codeintel-log-injection-analyzer. Fonts are embedded from the fonts folder beside this page, each under the SIL Open Font License 1.1.</p></footer>
 </body>
 </html>
